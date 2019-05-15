@@ -57,11 +57,11 @@ static void https_get_url(char *url)
     size_t written_bytes = 0;
     char request[1024];
     ESP_LOGI(TAG, "pippo4");
-    //sprintf(request,"GET %s HTTP/1.0\r\n"
-    //     "Host: iotfw.ninux.org\r\n"
-    //     "User-Agent: esp-idf/1.0 esp32\r\n"
-    //     "\r\n",url);
-    sprintf(request,"GET %s HTTP/1.0\r\n",url);
+    sprintf(request,"GET %s HTTP/1.0\r\n"
+         "Host: iotfw.ninux.org\r\n"
+         "User-Agent: esp-idf/1.0 esp32\r\n"
+         "\r\n",url);
+    //sprintf(request,"GET %s HTTP/1.0\r\n",url);
     ESP_LOGI(TAG, "pippo5");
     do {
         ret = esp_tls_conn_write(tls, request + written_bytes, strlen(request) - written_bytes);
