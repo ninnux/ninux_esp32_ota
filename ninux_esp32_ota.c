@@ -102,7 +102,7 @@ static void https_get_url(char *url, char *response)
         /* Print response directly to stdout as it is read */
         for(int i = 0; i < len; i++) {
             putchar(buf[i]);
-	    //sprintf((response+i),"%c",buf[i]);
+	    sprintf((response+i),"%c",buf[i]);
         }
     } while(1);
 
@@ -114,7 +114,7 @@ static void https_get_url(char *url, char *response)
         static int request_count;
         ESP_LOGI(TAG, "Completed %d requests", ++request_count);
 	//return response;
-	strncpy(response,buf,sizeof(buf));
+	//strncpy(response,buf,sizeof(buf));
         //bzero(response, strlen(response));
 	//sprintf(response,"prova:%s",buf);
 
