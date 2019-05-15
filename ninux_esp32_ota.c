@@ -31,8 +31,8 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 
 
 
-//static void https_get_url(char *url, char *response)
-static void https_get_url(char *url)
+static void https_get_url(char *url, char *response)
+//static void https_get_url(char *url)
 {
     char buf[512];
     int ret, len;
@@ -102,7 +102,7 @@ static void https_get_url(char *url)
         /* Print response directly to stdout as it is read */
         for(int i = 0; i < len; i++) {
             putchar(buf[i]);
-	    //sprintf((response+i),"%c",buf[i]);
+	    sprintf((response+i),"%c",buf[i]);
         }
     } while(1);
 
@@ -116,7 +116,7 @@ static void https_get_url(char *url)
 	//return response;
 	//strncpy(response,buf,sizeof(buf));
         //bzero(response, strlen(response));
-	//sprintf(response,"prova:%s",buf);
+	sprintf(response,"prova:%s",buf);
 
 }
 
@@ -165,11 +165,11 @@ void simple_ota_version_task(void * pvParameter)
 
     /* ASK FOR FIRMWARE URL */
     //strncpy(fw_url,https_get_url("https://iotfw.ninux.org/firwmare_check"),4096);
-    //char fw_url[4096]; 
-    //https_get_url("https://iotfw.ninux.org/firwmare_check",fw_url);
+    char fw_url[4096]; 
+    https_get_url("https://iotfw.ninux.org/firwmare_check",fw_url);
     //https_get_url("https://10.162.0.77/firwmare_check",fw_url);
-    //ESP_LOGI(TAG, "To be downloaded:%s\n",fw_url);
-    https_get_url("https://iotfw.ninux.org/firwmare_check");
+    ESP_LOGI(TAG, "To be downloaded:%s\n",fw_url);
+    //https_get_url("https://iotfw.ninux.org/firwmare_check");
     //https_get_url("https://10.162.0.77/firwmare_check");
 
     /* version check */

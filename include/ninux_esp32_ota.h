@@ -36,8 +36,8 @@ extern EventGroupHandle_t wifi_event_group;
 extern const int CONNECTED_BIT;
 
 
-//static void https_get_url(char *url, char *response);
-static void https_get_url(char *url);
+static void https_get_url(char *url, char *response);
+//static void https_get_url(char *url);
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt);
 void simple_ota_example_task(void * pvParameter);
