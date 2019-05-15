@@ -102,7 +102,7 @@ static void https_get_url(char *url, char *response)
         /* Print response directly to stdout as it is read */
         for(int i = 0; i < len; i++) {
             putchar(buf[i]);
-	    sprintf((response+i),"%c",buf[i]);
+	    //sprintf((response+i),"%c",buf[i]);
         }
     } while(1);
 
@@ -114,9 +114,9 @@ static void https_get_url(char *url, char *response)
         static int request_count;
         ESP_LOGI(TAG, "Completed %d requests", ++request_count);
 	//return response;
-	//strncpy(response,buf,sizeof(buf));
+	strncpy(response,buf,sizeof(buf));
         //bzero(response, strlen(response));
-	sprintf(response,"prova:%s",buf);
+	//sprintf(response,"prova:%s",buf);
 
 }
 
@@ -165,7 +165,7 @@ void simple_ota_version_task(void * pvParameter)
 
     /* ASK FOR FIRMWARE URL */
     //strncpy(fw_url,https_get_url("https://iotfw.ninux.org/firwmare_check"),4096);
-    char fw_url[4096]; 
+    char fw_url[512]; 
     https_get_url("https://iotfw.ninux.org/firwmare_check",fw_url);
     //https_get_url("https://10.162.0.77/firwmare_check",fw_url);
     ESP_LOGI(TAG, "To be downloaded:%s\n",fw_url);
