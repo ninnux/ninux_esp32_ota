@@ -32,7 +32,6 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 
 
 static void https_get_url(char *url, char *response)
-//static void https_get_url(char *url)
 {
     char buf[512];
     int ret, len;
@@ -61,7 +60,6 @@ static void https_get_url(char *url, char *response)
          "Host: iotfw.ninux.org\r\n"
          "User-Agent: esp-idf/1.0 esp32\r\n"
          "\r\n",url);
-    //sprintf(request,"GET %s HTTP/1.0\r\n",url);
     ESP_LOGI(TAG, "pippo5");
     do {
         ret = esp_tls_conn_write(tls, request + written_bytes, strlen(request) - written_bytes);
@@ -109,15 +107,9 @@ static void https_get_url(char *url, char *response)
     exit:
         esp_tls_conn_delete(tls);    
         putchar('\n'); // JSON output doesn't have a newline at end
-	//sprintf(response+strlen(response),"\n");
 	
         static int request_count;
         ESP_LOGI(TAG, "Completed %d requests", ++request_count);
-	//return response;
-	//strncpy(response,buf,sizeof(buf));
-        //bzero(response, strlen(response));
-	//sprintf(response,"prova:%s",buf);
-
 }
 
 
