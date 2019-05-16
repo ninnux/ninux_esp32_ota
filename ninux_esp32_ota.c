@@ -16,9 +16,15 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
         case HTTP_EVENT_ON_HEADER:
             ESP_LOGD(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
             break;
+        //case HTTP_EVENT_ON_DATA:
+        //    ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, pirulupiruli len=%d", evt->data_len);
+        //    break;
         case HTTP_EVENT_ON_DATA:
-            ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
-            break;
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
+            if (!esp_http_client_is_chunked_response(evt->client)) {
+                printf("%.*s", evt->data_len, (char*)evt->data);
+            }
+
         case HTTP_EVENT_ON_FINISH:
             ESP_LOGD(TAG, "HTTP_EVENT_ON_FINISH");
             break;
@@ -30,6 +36,26 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 }
 
 
+static void https_with_url()
+{
+    esp_http_client_config_t config = {
+        .url = "https://iotfw.ninux.org/pippo/pluto",
+        .event_handler = _http_event_handler,
+        //.cert_pem = howsmyssl_com_root_cert_pem_start,
+        .cert_pem = (char *)server_cert_pem_start,
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_err_t err = esp_http_client_perform(client);
+
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "HTTPS Status = %d, content_length = %d",
+                esp_http_client_get_status_code(client),
+                esp_http_client_get_content_length(client));
+    } else {
+        ESP_LOGE(TAG, "Error perform http request %s", esp_err_to_name(err));
+    }
+    esp_http_client_cleanup(client);
+}
 
 static void https_get_url(char *url, char *response)
 {
@@ -157,13 +183,13 @@ void simple_ota_version_task(void * pvParameter)
 
     /* ASK FOR FIRMWARE URL */
     //strncpy(fw_url,https_get_url("https://iotfw.ninux.org/firwmare_check"),4096);
-    char fw_url[512]; 
-    https_get_url("https://iotfw.ninux.org/firwmare_check",fw_url);
+    //char fw_url[512]; 
+    //https_get_url("https://iotfw.ninux.org/firwmare_check",fw_url);
     //https_get_url("https://10.162.0.77/firwmare_check",fw_url);
-    ESP_LOGI(TAG, "To be downloaded:%s\n",fw_url);
+    //ESP_LOGI(TAG, "To be downloaded:%s\n",fw_url);
     //https_get_url("https://iotfw.ninux.org/firwmare_check");
     //https_get_url("https://10.162.0.77/firwmare_check");
-
+    https_with_url();
     /* version check */
     ESP_LOGI(TAG, "Running partition type %d subtype %d (offset 0x%08x)",
              running->type, running->subtype, running->address);
