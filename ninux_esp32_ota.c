@@ -13,18 +13,47 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
         case HTTP_EVENT_HEADER_SENT:
             ESP_LOGD(TAG, "HTTP_EVENT_HEADER_SENT");
             break;
-        case HTTP_EVENT_ON_HEADER:
-            ESP_LOGD(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
+        //case HTTP_EVENT_ON_HEADER:
+        //    ESP_LOGD(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
+        //    break;
+	case HTTP_EVENT_ON_HEADER:
+            ESP_LOGI(TAG, "HTTP_EVENT_ON_HEADER");
+            printf("%.*s", evt->data_len, (char*)evt->data);
             break;
+
         //case HTTP_EVENT_ON_DATA:
         //    ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, pirulupiruli len=%d", evt->data_len);
         //    break;
         case HTTP_EVENT_ON_DATA:
             ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             if (!esp_http_client_is_chunked_response(evt->client)) {
-                printf("%.*s", evt->data_len, (char*)evt->data);
-            }
+                //printf("%.*s", evt->data_len, (char*)evt->data);
+		int init_size = evt->data_len;
+		char delim[] = ",";
+		char update[] = "0";
+		int updateint = 0;
+		char *url = malloc(evt->data_len-2);
+		bzero(url,evt->data_len-2);
 
+		char *ptr = strtok((char*)evt->data, delim);
+
+		strncpy(update,ptr,strlen(ptr));
+		//printf("%s\n",update);
+		ptr = strtok(NULL, delim);
+		strncpy(url,ptr,evt->data_len-2);
+		//printf("%s\n",url);
+		ptr = strtok(NULL, delim);
+		updateint=atoi(update);	
+		if(updateint==1){
+			printf("%s\n",url);
+		}
+		//while (ptr != NULL)
+		//{
+		//	printf("%s\n", ptr);
+		//	ptr = strtok(NULL, delim);
+		//}
+            }
+            break;
         case HTTP_EVENT_ON_FINISH:
             ESP_LOGD(TAG, "HTTP_EVENT_ON_FINISH");
             break;
