@@ -40,17 +40,10 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
         case HTTP_EVENT_HEADER_SENT:
             ESP_LOGD(TAG, "HTTP_EVENT_HEADER_SENT");
             break;
-        //case HTTP_EVENT_ON_HEADER:
-        //    ESP_LOGD(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
-        //    break;
 	case HTTP_EVENT_ON_HEADER:
             ESP_LOGI(TAG, "HTTP_EVENT_ON_HEADER");
             printf("%.*s", evt->data_len, (char*)evt->data);
             break;
-
-        //case HTTP_EVENT_ON_DATA:
-        //    ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, pirulupiruli len=%d", evt->data_len);
-        //    break;
         case HTTP_EVENT_ON_DATA:
             ESP_LOGI(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
             if (!esp_http_client_is_chunked_response(evt->client)) {
@@ -65,11 +58,8 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 		char *ptr = strtok((char*)evt->data, delim);
 
 		strncpy(update,ptr,strlen(ptr));
-		//printf("%s\n",update);
 		ptr = strtok(NULL, delim);
 		sprintf(url,"%s",ptr);
-		//strncpy(url,ptr,evt->data_len-3);
-		//printf("%s\n",url);
 		ptr = strtok(NULL, delim);
 		updateint=atoi(update);	
 		bzero(fw_url,strlen(fw_url));
@@ -77,11 +67,6 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 			printf("%s\n",url);
 			sprintf(fw_url,"%s",url);
 		}
-		//while (ptr != NULL)
-		//{
-		//	printf("%s\n", ptr);
-		//	ptr = strtok(NULL, delim);
-		//}
             }
             break;
         case HTTP_EVENT_ON_FINISH:
@@ -95,12 +80,12 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 }
 
 
-static void https_with_url()
+static void https_with_url(char* fw_ver_url)
 {
     esp_http_client_config_t config = {
-        .url = "https://iotfw.ninux.org/pippo/pluto",
+        .url = fw_ver_url,
+        //.url = "https://iotfw.ninux.org/pippo/pluto",
         .event_handler = _http_event_handler,
-        //.cert_pem = howsmyssl_com_root_cert_pem_start,
         .cert_pem = (char *)server_cert_pem_start,
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
@@ -116,121 +101,12 @@ static void https_with_url()
     esp_http_client_cleanup(client);
 }
 
-/*
-static void https_get_url(char *url, char *response)
-{
-    char buf[512];
-    int ret, len;
-
-    esp_tls_cfg_t cfg = {
-        .cacert_pem_buf  = server_cert_pem_start,
-        .cacert_pem_bytes = server_cert_pem_end - server_cert_pem_start,
-    };
-    
-    ESP_LOGI(TAG, "pippo1");
-    struct esp_tls *tls = esp_tls_conn_http_new(url, &cfg);
-    
-    ESP_LOGI(TAG, "pippo2");
-    if(tls != NULL) {
-        ESP_LOGI(TAG, "Connection established...");
-    } else {
-        ESP_LOGE(TAG, "Connection failed...");
-        goto exit;
-    }
-    
-    ESP_LOGI(TAG, "pippo3");
-    size_t written_bytes = 0;
-    char request[1024];
-    ESP_LOGI(TAG, "pippo4");
-    sprintf(request,"GET %s HTTP/1.0\r\n"
-         "Host: iotfw.ninux.org\r\n"
-         "User-Agent: esp-idf/1.0 esp32\r\n"
-         "\r\n",url);
-    ESP_LOGI(TAG, "pippo5");
-    do {
-        ret = esp_tls_conn_write(tls, request + written_bytes, strlen(request) - written_bytes);
-        if (ret >= 0) {
-            ESP_LOGI(TAG, "%d bytes written", ret);
-            written_bytes += ret;
-        } else if (ret != MBEDTLS_ERR_SSL_WANT_READ  && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
-            ESP_LOGE(TAG, "esp_tls_conn_write  returned 0x%x", ret);
-            goto exit;
-        }
-    } while(written_bytes < strlen(request));
-
-    ESP_LOGI(TAG, "Reading HTTP response...");
-
-    do
-    {
-        len = sizeof(buf) - 1;
-        bzero(buf, sizeof(buf));
-        ret = esp_tls_conn_read(tls, (char *)buf, len);
-        
-        if(ret == MBEDTLS_ERR_SSL_WANT_WRITE  || ret == MBEDTLS_ERR_SSL_WANT_READ)
-            continue;
-        
-        if(ret < 0)
-       {
-            ESP_LOGE(TAG, "esp_tls_conn_read  returned -0x%x", -ret);
-            break;
-        }
-
-        if(ret == 0)
-        {
-            ESP_LOGI(TAG, "connection closed");
-            break;
-        }
-
-        len = ret;
-        ESP_LOGD(TAG, "%d bytes read", len);
-        // Print response directly to stdout as it is read 
-        for(int i = 0; i < len; i++) {
-            putchar(buf[i]);
-	    sprintf((response+i),"%c",buf[i]);
-        }
-    } while(1);
-
-    exit:
-        esp_tls_conn_delete(tls);    
-        putchar('\n'); // JSON output doesn't have a newline at end
-	
-        static int request_count;
-        ESP_LOGI(TAG, "Completed %d requests", ++request_count);
-}
-
-
-void simple_ota_example_task(void * pvParameter)
-{
-    ESP_LOGI(TAG, "Starting OTA example");
-
-    // Wait for the callback to set the CONNECTED_BIT in the event group.  
-    xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY);
-    ESP_LOGI(TAG, "Connected to WiFi network! Attempting to connect to server...");
-
-
-    // ASK FOR FIRMWARE URL 
-    
-    esp_http_client_config_t config = {
-        .url = CONFIG_FIRMWARE_UPGRADE_URL,
-        .cert_pem = (char *)server_cert_pem_start,
-        .event_handler = _http_event_handler,
-    };
-    esp_err_t ret = esp_https_ota(&config);
-    if (ret == ESP_OK) {
-        esp_restart();
-    } else {
-        ESP_LOGE(TAG, "Firmware upgrade failed");
-    }
-    while (1) {
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-}
-*/
 
 void simple_ota_version_task(void * pvParameter)
 {
     ESP_LOGI(TAG, "Starting OTA version check");
-
+    char fw_ver_url[128];
+    bzero(fw_ver_url,sizeof(fw_ver_url));
     const esp_partition_t *running = esp_ota_get_running_partition();
 
     /* Wait for the callback to set the CONNECTED_BIT in the
@@ -247,7 +123,6 @@ void simple_ota_version_task(void * pvParameter)
     //ESP_LOGI(TAG, "To be downloaded:%s\n",fw_url);
     //https_get_url("https://iotfw.ninux.org/firwmare_check");
     //https_get_url("https://10.162.0.77/firwmare_check");
-    https_with_url();
     /* version check */
     ESP_LOGI(TAG, "Running partition type %d subtype %d (offset 0x%08x)",
              running->type, running->subtype, running->address);
@@ -255,6 +130,8 @@ void simple_ota_version_task(void * pvParameter)
     if (esp_ota_get_partition_description(running, &running_app_info) == ESP_OK) {
         ESP_LOGI(TAG, "Running firmware version: %s", running_app_info.version);
     }
+    sprintf(fw_ver_url,"https://iotfw.ninux.org/%s/%s",running_app_info.project_name,running_app_info.version);
+    https_with_url(fw_ver_url);
     
     esp_http_client_config_t config = {
         //.url = CONFIG_FIRMWARE_UPGRADE_URL,
