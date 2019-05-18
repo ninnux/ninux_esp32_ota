@@ -130,20 +130,21 @@ void simple_ota_version_task(void * pvParameter)
     if (esp_ota_get_partition_description(running, &running_app_info) == ESP_OK) {
         ESP_LOGI(TAG, "Running firmware version: %s", running_app_info.version);
     }
-    sprintf(fw_ver_url,"https://iotfw.ninux.org/%s/%s",running_app_info.project_name,running_app_info.version);
+    sprintf(fw_ver_url,"%s/%s/%s",CONFIG_FIRMWARE_UPGRADE_HOST,running_app_info.project_name,running_app_info.version);
     https_with_url(fw_ver_url);
-    
-    esp_http_client_config_t config = {
-        //.url = CONFIG_FIRMWARE_UPGRADE_URL,
-        .url = fw_url,
-        .cert_pem = (char *)server_cert_pem_start,
-        .event_handler = _http_event_handler_fw,
-    };
-    esp_err_t ret = esp_https_ota(&config);
-    if (ret == ESP_OK) {
-        esp_restart();
-    } else {
-        ESP_LOGE(TAG, "Firmware upgrade failed");
+    if(strlen(fw_url)!=0){ 
+      esp_http_client_config_t config = {
+          //.url = CONFIG_FIRMWARE_UPGRADE_URL,
+          .url = fw_url,
+          .cert_pem = (char *)server_cert_pem_start,
+          .event_handler = _http_event_handler_fw,
+      };
+      esp_err_t ret = esp_https_ota(&config);
+      if (ret == ESP_OK) {
+          esp_restart();
+      } else {
+          ESP_LOGE(TAG, "Firmware upgrade failed");
+      }
     }
     while (1) {
         vTaskDelay(1000 / portTICK_PERIOD_MS);
