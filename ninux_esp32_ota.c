@@ -1,5 +1,32 @@
 
 #include "ninux_esp32_ota.h"
+esp_err_t _http_event_handler_fw(esp_http_client_event_t *evt)
+{
+    switch(evt->event_id) {
+        case HTTP_EVENT_ERROR:
+            ESP_LOGD(TAG, "HTTP_EVENT_ERROR");
+            break;
+        case HTTP_EVENT_ON_CONNECTED:
+            ESP_LOGD(TAG, "HTTP_EVENT_ON_CONNECTED");
+            break;
+        case HTTP_EVENT_HEADER_SENT:
+            ESP_LOGD(TAG, "HTTP_EVENT_HEADER_SENT");
+            break;
+        case HTTP_EVENT_ON_HEADER:
+            ESP_LOGD(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
+            break;
+        case HTTP_EVENT_ON_DATA:
+            ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, pirulupiruli len=%d", evt->data_len);
+            break;
+        case HTTP_EVENT_ON_FINISH:
+            ESP_LOGD(TAG, "HTTP_EVENT_ON_FINISH");
+            break;
+        case HTTP_EVENT_DISCONNECTED:
+            ESP_LOGD(TAG, "HTTP_EVENT_DISCONNECTED");
+            break;
+    }
+    return ESP_OK;
+}
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
@@ -40,12 +67,15 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 		strncpy(update,ptr,strlen(ptr));
 		//printf("%s\n",update);
 		ptr = strtok(NULL, delim);
-		strncpy(url,ptr,evt->data_len-2);
+		sprintf(url,"%s",ptr);
+		//strncpy(url,ptr,evt->data_len-3);
 		//printf("%s\n",url);
 		ptr = strtok(NULL, delim);
 		updateint=atoi(update);	
+		bzero(fw_url,strlen(fw_url));
 		if(updateint==1){
 			printf("%s\n",url);
+			sprintf(fw_url,"%s",url);
 		}
 		//while (ptr != NULL)
 		//{
@@ -86,6 +116,7 @@ static void https_with_url()
     esp_http_client_cleanup(client);
 }
 
+/*
 static void https_get_url(char *url, char *response)
 {
     char buf[512];
@@ -152,7 +183,7 @@ static void https_get_url(char *url, char *response)
 
         len = ret;
         ESP_LOGD(TAG, "%d bytes read", len);
-        /* Print response directly to stdout as it is read */
+        // Print response directly to stdout as it is read 
         for(int i = 0; i < len; i++) {
             putchar(buf[i]);
 	    sprintf((response+i),"%c",buf[i]);
@@ -172,14 +203,12 @@ void simple_ota_example_task(void * pvParameter)
 {
     ESP_LOGI(TAG, "Starting OTA example");
 
-    /* Wait for the callback to set the CONNECTED_BIT in the
-       event group.
-    */
+    // Wait for the callback to set the CONNECTED_BIT in the event group.  
     xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY);
     ESP_LOGI(TAG, "Connected to WiFi network! Attempting to connect to server...");
 
 
-    /* ASK FOR FIRMWARE URL */
+    // ASK FOR FIRMWARE URL 
     
     esp_http_client_config_t config = {
         .url = CONFIG_FIRMWARE_UPGRADE_URL,
@@ -196,7 +225,7 @@ void simple_ota_example_task(void * pvParameter)
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
-
+*/
 
 void simple_ota_version_task(void * pvParameter)
 {
@@ -228,9 +257,10 @@ void simple_ota_version_task(void * pvParameter)
     }
     
     esp_http_client_config_t config = {
-        .url = CONFIG_FIRMWARE_UPGRADE_URL,
+        //.url = CONFIG_FIRMWARE_UPGRADE_URL,
+        .url = fw_url,
         .cert_pem = (char *)server_cert_pem_start,
-        .event_handler = _http_event_handler,
+        .event_handler = _http_event_handler_fw,
     };
     esp_err_t ret = esp_https_ota(&config);
     if (ret == ESP_OK) {

@@ -35,7 +35,7 @@ extern const uint8_t server_cert_pem_end[] asm("_binary_ca_cert_pem_end");
 extern EventGroupHandle_t wifi_event_group;
 extern const int CONNECTED_BIT;
 
-
+char fw_url[512];
 static void https_get_url(char *url, char *response);
 //static void https_get_url(char *url);
 
