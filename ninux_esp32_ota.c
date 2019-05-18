@@ -144,6 +144,7 @@ void simple_ota_version_task(void * pvParameter)
           esp_restart();
       } else {
           ESP_LOGE(TAG, "Firmware upgrade failed");
+          esp_restart();
       }
     }
     while (1) {
