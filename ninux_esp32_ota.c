@@ -84,7 +84,6 @@ static void https_with_url(char* fw_ver_url)
 {
     esp_http_client_config_t config = {
         .url = fw_ver_url,
-        //.url = "https://iotfw.ninux.org/pippo/pluto",
         .event_handler = _http_event_handler,
         .cert_pem = (char *)server_cert_pem_start,
     };
@@ -168,5 +167,6 @@ void ninux_esp32_ota()
     ESP_ERROR_CHECK( err );
 
     //xTaskCreate(&simple_ota_example_task, "ota_example_task", 8192, NULL, 5, NULL);
-    xTaskCreate(&simple_ota_version_task, "ota_version_task", 8192, NULL, 5, NULL);
+    //xTaskCreate(&simple_ota_version_task, "ota_version_task", 8192, NULL, 5, NULL);
+    simple_ota_version_task(NULL);
 }
