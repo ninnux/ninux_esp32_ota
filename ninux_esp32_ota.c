@@ -146,9 +146,9 @@ void simple_ota_version_task(void * pvParameter)
           esp_restart();
       }
     }
-    while (1) {
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
+    //while (1) {
+    //    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    //}
 }
 
 
@@ -166,7 +166,6 @@ void ninux_esp32_ota()
     }
     ESP_ERROR_CHECK( err );
 
-    //xTaskCreate(&simple_ota_example_task, "ota_example_task", 8192, NULL, 5, NULL);
     //xTaskCreate(&simple_ota_version_task, "ota_version_task", 8192, NULL, 5, NULL);
     simple_ota_version_task(NULL);
 }
