@@ -114,14 +114,6 @@ void simple_ota_version_task(void * pvParameter)
     xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY);
     ESP_LOGI(TAG, "Connected to WiFi network! Attempting to connect to server...");
 
-    /* ASK FOR FIRMWARE URL */
-    //strncpy(fw_url,https_get_url("https://iotfw.ninux.org/firwmare_check"),4096);
-    //char fw_url[512]; 
-    //https_get_url("https://iotfw.ninux.org/firwmare_check",fw_url);
-    //https_get_url("https://10.162.0.77/firwmare_check",fw_url);
-    //ESP_LOGI(TAG, "To be downloaded:%s\n",fw_url);
-    //https_get_url("https://iotfw.ninux.org/firwmare_check");
-    //https_get_url("https://10.162.0.77/firwmare_check");
     /* version check */
     ESP_LOGI(TAG, "Running partition type %d subtype %d (offset 0x%08x)",
              running->type, running->subtype, running->address);
@@ -129,11 +121,12 @@ void simple_ota_version_task(void * pvParameter)
     if (esp_ota_get_partition_description(running, &running_app_info) == ESP_OK) {
         ESP_LOGI(TAG, "Running firmware version: %s", running_app_info.version);
     }
+
+    /* ASK FOR FIRMWARE URL */
     sprintf(fw_ver_url,"%s/%s/%s",CONFIG_FIRMWARE_UPGRADE_HOST,running_app_info.project_name,running_app_info.version);
     https_with_url(fw_ver_url);
     if(strlen(fw_url)!=0){ 
       esp_http_client_config_t config = {
-          //.url = CONFIG_FIRMWARE_UPGRADE_URL,
           .url = fw_url,
           .cert_pem = (char *)server_cert_pem_start,
           .event_handler = _http_event_handler_fw,
@@ -146,9 +139,6 @@ void simple_ota_version_task(void * pvParameter)
           esp_restart();
       }
     }
-    //while (1) {
-    //    vTaskDelay(1000 / portTICK_PERIOD_MS);
-    //}
 }
 
 
