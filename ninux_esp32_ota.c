@@ -121,9 +121,15 @@ void simple_ota_version_task(void * pvParameter)
     if (esp_ota_get_partition_description(running, &running_app_info) == ESP_OK) {
         ESP_LOGI(TAG, "Running firmware version: %s", running_app_info.version);
     }
-
+    uint8_t mac[6];
+    //esp_base_mac_addr_get(mac);
+    esp_efuse_mac_get_default(mac);
+    char mac_str[16];
+    bzero(mac_str,sizeof(mac_str));
+    sprintf(mac_str,"%02x:%02x:%02x:%02x:%02x:%02x",mac[0],mac[1],mac[2],mac[3],mac[4],mac[5]);
+    ESP_LOGI(TAG, "mac address: %s", mac_str);
     /* ASK FOR FIRMWARE URL */
-    sprintf(fw_ver_url,"%s/%s/%s",CONFIG_FIRMWARE_UPGRADE_HOST,running_app_info.project_name,running_app_info.version);
+    sprintf(fw_ver_url,"%s/%s/%s/%s",CONFIG_FIRMWARE_UPGRADE_HOST,running_app_info.project_name,running_app_info.version,mac_str);
     https_with_url(fw_ver_url);
     if(strlen(fw_url)!=0){ 
       esp_http_client_config_t config = {
