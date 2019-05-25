@@ -1,4 +1,7 @@
 
+#ifndef NINUX_ESP32_OTA
+#define NINUX_ESP32_OTA
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -43,3 +46,4 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt);
 void simple_ota_example_task(void * pvParameter);
 
 void ninux_esp32_ota();
+#endif
