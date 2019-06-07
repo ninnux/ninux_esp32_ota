@@ -42,6 +42,12 @@ ESP_ERROR_CHECK( err );
 tcpip_adapter_init();
 initialise_wifi();
 ...
+//HERE a check can run
+// esp_ota_mark_app_valid_cancel_rollback();
+// or 
+//esp_ota_mark_app_invalid_rollback_and_reboot();
+// for firmware validation
+...
 ninux_esp32_ota();
 ...
 ```
