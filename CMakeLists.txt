@@ -4,6 +4,8 @@ idf_component_register(
     INCLUDE_DIRS
         "."
         "include"
+    EMBED_TXTFILES
+        "server_certs/ca_cert.pem"
     REQUIRES
         esp_http_client
         app_update

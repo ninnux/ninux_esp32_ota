@@ -1,4 +1,3 @@
-
 #ifndef NINUX_ESP32_OTA
 #define NINUX_ESP32_OTA
 
@@ -7,43 +6,38 @@
 #include "freertos/event_groups.h"
 
 #include "esp_system.h"
+#include "esp_mac.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_ota_ops.h"
 #include "esp_http_client.h"
 #include "esp_https_ota.h"
+#include "esp_partition.h"
 
 #include "nvs.h"
 #include "nvs_flash.h"
-
-
-// da ota_task
-#include "string.h"
-#include "esp_flash_partitions.h"
-#include "esp_partition.h"
-#define BUFFSIZE 1024
-static char ota_write_data[BUFFSIZE + 1] = { 0 };
-static void http_cleanup(esp_http_client_handle_t client);
-//=========
-
-// per http req
 #include "esp_tls.h"
-//=====
+#include "string.h"
+#include <inttypes.h>
 
-static const char *TAG = "ninux_esp32_ota";
+#define BUFFSIZE 1024
+
+// TAG e fw_url definiti UNA SOLA VOLTA in ninux_esp32_ota.c
+// qui solo dichiarazione extern
+extern const char *TAG;
+extern char fw_url[512];
+
 extern const uint8_t server_cert_pem_start[] asm("_binary_ca_cert_pem_start");
-extern const uint8_t server_cert_pem_end[] asm("_binary_ca_cert_pem_end");
+extern const uint8_t server_cert_pem_end[]   asm("_binary_ca_cert_pem_end");
 
 extern EventGroupHandle_t wifi_event_group;
 extern const int CONNECTED_BIT;
 
-char fw_url[512];
-static void https_get_url(char *url, char *response);
-//static void https_get_url(char *url);
-
+esp_err_t _http_event_handler_fw(esp_http_client_event_t *evt);
 esp_err_t _http_event_handler(esp_http_client_event_t *evt);
-void simple_ota_example_task(void * pvParameter);
-
+void simple_ota_version_task(void *pvParameter);
 void ninux_esp32_ota();
+
 #endif
+

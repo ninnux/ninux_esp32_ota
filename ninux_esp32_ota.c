@@ -2,6 +2,10 @@
 #include "ninux_esp32_ota.h"
 #include "esp_mac.h"
 #include <inttypes.h>
+
+// Definizioni — dichiarate extern nell'header
+const char *TAG = "ninux_esp32_ota";
+char fw_url[512];
 esp_err_t _http_event_handler_fw(esp_http_client_event_t *evt)
 {
     switch(evt->event_id) {
