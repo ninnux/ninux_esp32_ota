@@ -1,5 +1,7 @@
 
 #include "ninux_esp32_ota.h"
+#include "esp_mac.h"
+#include <inttypes.h>
 esp_err_t _http_event_handler_fw(esp_http_client_event_t *evt)
 {
     switch(evt->event_id) {
@@ -23,6 +25,9 @@ esp_err_t _http_event_handler_fw(esp_http_client_event_t *evt)
             break;
         case HTTP_EVENT_DISCONNECTED:
             ESP_LOGD(TAG, "HTTP_EVENT_DISCONNECTED");
+            break;
+        case HTTP_EVENT_REDIRECT:
+            ESP_LOGD(TAG, "HTTP_EVENT_REDIRECT");
             break;
     }
     return ESP_OK;
@@ -75,6 +80,9 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
         case HTTP_EVENT_DISCONNECTED:
             ESP_LOGD(TAG, "HTTP_EVENT_DISCONNECTED");
             break;
+        case HTTP_EVENT_REDIRECT:
+            ESP_LOGD(TAG, "HTTP_EVENT_REDIRECT");
+            break;
     }
     return ESP_OK;
 }
@@ -91,9 +99,9 @@ static void https_with_url(char* fw_ver_url)
     esp_err_t err = esp_http_client_perform(client);
 
     if (err == ESP_OK) {
-        ESP_LOGI(TAG, "HTTPS Status = %d, content_length = %d",
+        ESP_LOGI(TAG, "HTTPS Status = %d, content_length = %lld",
                 esp_http_client_get_status_code(client),
-                esp_http_client_get_content_length(client));
+                (long long)esp_http_client_get_content_length(client));
     } else {
         ESP_LOGE(TAG, "Error perform http request %s", esp_err_to_name(err));
     }
@@ -115,29 +123,32 @@ void simple_ota_version_task(void * pvParameter)
     ESP_LOGI(TAG, "Connected to WiFi network! Attempting to connect to server...");
 
     /* version check */
-    ESP_LOGI(TAG, "Running partition type %d subtype %d (offset 0x%08x)",
+    ESP_LOGI(TAG, "Running partition type %d subtype %d (offset 0x%08"PRIx32")",
              running->type, running->subtype, running->address);
     esp_app_desc_t running_app_info;
     if (esp_ota_get_partition_description(running, &running_app_info) == ESP_OK) {
         ESP_LOGI(TAG, "Running firmware version: %s", running_app_info.version);
     }
     uint8_t mac[6];
-    //esp_base_mac_addr_get(mac);
-    esp_efuse_mac_get_default(mac);
-    char mac_str[16];
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+    char mac_str[18];
     bzero(mac_str,sizeof(mac_str));
-    sprintf(mac_str,"%02x:%02x:%02x:%02x:%02x:%02x",mac[0],mac[1],mac[2],mac[3],mac[4],mac[5]);
+    snprintf(mac_str, sizeof(mac_str), "%02x:%02x:%02x:%02x:%02x:%02x",
+             mac[0],mac[1],mac[2],mac[3],mac[4],mac[5]);
     ESP_LOGI(TAG, "mac address: %s", mac_str);
     /* ASK FOR FIRMWARE URL */
     sprintf(fw_ver_url,"%s/%s/%s/%s",CONFIG_FIRMWARE_UPGRADE_HOST,running_app_info.project_name,running_app_info.version,mac_str);
     https_with_url(fw_ver_url);
     if(strlen(fw_url)!=0){ 
-      esp_http_client_config_t config = {
+      esp_http_client_config_t http_config = {
           .url = fw_url,
           .cert_pem = (char *)server_cert_pem_start,
           .event_handler = _http_event_handler_fw,
       };
-      esp_err_t ret = esp_https_ota(&config);
+      esp_https_ota_config_t ota_config = {
+          .http_config = &http_config,
+      };
+      esp_err_t ret = esp_https_ota(&ota_config);
       if (ret == ESP_OK) {
           esp_restart();
       } else {
@@ -165,3 +176,4 @@ void ninux_esp32_ota()
     //xTaskCreate(&simple_ota_version_task, "ota_version_task", 8192, NULL, 5, NULL);
     simple_ota_version_task(NULL);
 }
+
